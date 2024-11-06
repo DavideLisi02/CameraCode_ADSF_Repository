@@ -59,18 +59,65 @@ def findObjinImage(room_image, object_image):
  
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 URL = "http://192.168.121.87"
+
+tracker = cv2.TrackerKCF_create()
+init_box = None  # Assuming init_box is the bounding box of detected object
 cap = cv2.VideoCapture(URL + ":81/stream")
 object_image = cv2.imread('Mouse1.jpg')
 cv2.imshow('Mouseimg',object_image)
 
+def planttracker():
+    # Initialize tracker
+    tracker = cv2.TrackerKCF_create()
+    init_box = None  # Assuming init_box is the bounding box of detected object
+    video = cv2.VideoCapture('video_path.mp4')
+
+    # Read first frame
+    ok, frame = video.read()
+    if ok:
+        init_box = cv2.selectROI(frame, False)  # Let user select ROI
+        tracker.init(frame, init_box)
+
+    while True:
+        ok, frame = video.read()
+        if not ok:
+            break
+        
+        ok, bbox = tracker.update(frame)
+        if ok:
+            (x, y, w, h) = [int(v) for v in bbox]
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
+        else:
+            cv2.putText(frame, "Tracking failure", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(0,0,255),2)
+
+        cv2.imshow("Tracking", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    video.release()
+    cv2.destroyAllWindows()
+
+
+first_iteration = True
 if __name__ == '__main__':
     requests.get(URL + "/control?var=framesize&val={}".format(8))
     while True:
         if cap.isOpened():
             ret, frame = cap.read()
             
-            findObjinImage(frame, object_image)
-
+            if ret and first_iteration:
+                init_box = cv2.selectROI(frame, False)  # Let user select ROI
+                tracker.init(frame, init_box)
+                first_iteration=False
+            if not ret:
+               break
+            ret, bbox = tracker.update(frame)
+            if ret:
+                (x, y, w, h) = [int(v) for v in bbox]
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
+            else:
+                cv2.putText(frame, "Tracking failure", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(0,0,255),2)
+ 
             cv2.imshow("Output", frame)
  
             #imgnp=np.array(bytearray(cap.read()),dtype=np.uint8)
@@ -78,7 +125,9 @@ if __name__ == '__main__':
             #bbox, label, conf = cv.detect_common_objects(frame)
             #im = draw_bbox(frame, bbox, label, conf)
             #cv2.imshow('Output',im)
- 
+
+            
+
             key = cv2.waitKey(3)
             
             if key == 27:
