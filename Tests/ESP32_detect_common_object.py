@@ -45,9 +45,9 @@ if __name__ == '__main__':
  
             #imgnp=np.array(bytearray(cap.read()),dtype=np.uint8)
             #im = cv2.imdecode(imgnp,-1)
-            bbox, label, conf = cv.detect_common_objects(frame)
-            im = draw_bbox(frame, bbox, label, conf)
-            cv2.imshow('Output',im)
+            #bbox, label, conf = cv.detect_common_objects(frame)
+            #im = draw_bbox(frame, bbox, label, conf)
+            #cv2.imshow('Output',im)
  
             key = cv2.waitKey(3)
             
