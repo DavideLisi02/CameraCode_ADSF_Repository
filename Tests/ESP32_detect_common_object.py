@@ -1,4 +1,5 @@
 import cv2
+import os
 import numpy as np
 import requests
 import time
@@ -40,7 +41,7 @@ def findObjinImage(room_image, object_image):
     result = cv2.matchTemplate(room_gray, plant_gray, cv2.TM_CCOEFF_NORMED)
 
     # Define a threshold to find the best matches
-    threshold = 0.8  # Adjust based on similarity; closer to 1 means stricter matching
+    threshold = 0.98  # Adjust based on similarity; closer to 1 means stricter matching
 
     # Get the coordinates of matching regions
     locations = np.where(result >= threshold)
@@ -50,16 +51,17 @@ def findObjinImage(room_image, object_image):
 
     # `max_loc` is the top-left corner of the plant location in the room image
     plant_top_left = max_loc
-    plant_bottom_right = (plant_top_left[0] + object_image.shape[1], plant_top_left[1] + object_image.shape[0])
+    plant_bottom_right = (plant_top_left[0] + 10, plant_top_left[1] + 10)
 
     # Draw a rectangle around the detected plant in the room image (optional, for visualization)
     cv2.rectangle(room_image, plant_top_left, plant_bottom_right, (0, 255, 0), 2)
-
     return result
  
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 URL = "http://192.168.121.87"
 cap = cv2.VideoCapture(URL + ":81/stream")
-object_image = cv2.imread('object_image.jpg')
+object_image = cv2.imread('Mouse1.jpg')
+cv2.imshow('Mouseimg',object_image)
 
 if __name__ == '__main__':
     requests.get(URL + "/control?var=framesize&val={}".format(8))
