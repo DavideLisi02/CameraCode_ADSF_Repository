@@ -42,7 +42,7 @@ def findObjinImage(room_image, object_image):
     cv2.rectangle(room_image, plant_top_left, plant_bottom_right, (0, 255, 0), 2)
     return result
 
-def find_reflection(image_0, image_1):
+def find_reflection(image_0, image_1, video_stored):
    
     gray_0 = cv2.cvtColor(image_0, cv2.COLOR_BGR2GRAY)
     gray_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
@@ -55,16 +55,23 @@ def find_reflection(image_0, image_1):
     # Calculate the coordinates of white pixels
     white_pixels = np.column_stack(np.where(thresh == 255))
 
+    reflection_x = None
+    reflection_y = None
+
+    video_stored.write(thresh)
+
     # Check if there are any white pixels
     if white_pixels.size > 0:
         # Calculate the average x and y coordinates
+        found = True
         reflection_x = int(np.mean(white_pixels[:, 1]))  # x-coordinates are in the second column
         reflection_y = int(np.mean(white_pixels[:, 0]))  # y-coordinates are in the first column
         print(f"Average position of reflection: X = {reflection_x} | Y = {reflection_y}")
     else:
+        found = False
         print("No white pixels found in the image.")
 
-    return (reflection_x, reflection_y)
+    return ((reflection_x, reflection_y),found)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 URL = "http://192.168.137.129"
@@ -98,9 +105,9 @@ if __name__ == '__main__':
             if not ret:
                break
             
-            reflection_xy = find_reflection(frame_0, frame)
-
-            cv2.circle(frame, reflection_xy, 10, (0, 0, 255), 2)
+            reflection_xy = find_reflection(frame_0, frame, out)
+            if reflection_xy[1]:
+                cv2.circle(frame, reflection_xy[0], 10, (0, 0, 255), 2)
 
             ret, bbox = tracker.update(frame)
             if ret:
@@ -110,8 +117,6 @@ if __name__ == '__main__':
             else:
                 cv2.putText(frame, "Tracking failure", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
-            # Write the frame to the video file
-            out.write(frame)
             
             cv2.imshow("Output", frame)
             key = cv2.waitKey(3)
