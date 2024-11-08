@@ -43,7 +43,7 @@ def findObjinImage(room_image, object_image):
     return result
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-URL = "http://192.168.121.87"
+URL = "http://192.168.137.129"
 tracker = cv2.TrackerKCF_create()
 cap = cv2.VideoCapture(URL + ":81/stream")
 
@@ -74,6 +74,7 @@ if __name__ == '__main__':
             if ret:
                 (x, y, w, h) = [int(v) for v in bbox]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
+                print(f"Object detected at coord = X:{(x+w)/2} | Y:{(y+h)/2}")
             else:
                 cv2.putText(frame, "Tracking failure", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
@@ -90,3 +91,4 @@ if __name__ == '__main__':
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+
