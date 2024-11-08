@@ -42,6 +42,30 @@ def findObjinImage(room_image, object_image):
     cv2.rectangle(room_image, plant_top_left, plant_bottom_right, (0, 255, 0), 2)
     return result
 
+def find_reflection(image_0, image_1):
+   
+    gray_0 = cv2.cvtColor(image_0, cv2.COLOR_BGR2GRAY)
+    gray_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
+    
+    diff = cv2.absdiff(gray_0, gray_1)
+    
+    _, thresh = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
+
+    # Assuming 'thresh' is your binary image with white (255) and black (0) pixels.
+    # Calculate the coordinates of white pixels
+    white_pixels = np.column_stack(np.where(thresh == 255))
+
+    # Check if there are any white pixels
+    if white_pixels.size > 0:
+        # Calculate the average x and y coordinates
+        reflection_x = int(np.mean(white_pixels[:, 1]))  # x-coordinates are in the second column
+        reflection_y = int(np.mean(white_pixels[:, 0]))  # y-coordinates are in the first column
+        print(f"Average position of reflection: X = {reflection_x} | Y = {reflection_y}")
+    else:
+        print("No white pixels found in the image.")
+
+    return (reflection_x, reflection_y)
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 URL = "http://192.168.137.129"
 tracker = cv2.TrackerKCF_create()
@@ -55,6 +79,8 @@ fps = 20.0  # Set frames per second
 fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Define codec
 out = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
 
+frame_0 = None
+
 first_iteration = True
 if __name__ == '__main__':
     requests.get(URL + "/control?var=framesize&val={}".format(8))
@@ -64,11 +90,17 @@ if __name__ == '__main__':
             
             if ret and first_iteration:
                 init_box = cv2.selectROI(frame, False)
+                frame_0 = frame
+                ret_0 = ret
                 tracker.init(frame, init_box)
                 first_iteration = False
 
             if not ret:
                break
+            
+            reflection_xy = find_reflection(frame_0, frame)
+
+            cv2.circle(frame, reflection_xy, 10, (0, 0, 255), 2)
 
             ret, bbox = tracker.update(frame)
             if ret:
