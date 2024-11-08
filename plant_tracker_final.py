@@ -74,7 +74,7 @@ def find_reflection(image_0, image_1, video_stored):
     return ((reflection_x, reflection_y),found)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-URL = "http://192.168.137.129"
+URL = "http://192.168.137.194"
 tracker = cv2.TrackerKCF_create()
 cap = cv2.VideoCapture(URL + ":81/stream")
 
