@@ -51,7 +51,7 @@ def findObjinImage(room_image, object_image):
 
     # `max_loc` is the top-left corner of the plant location in the room image
     plant_top_left = max_loc
-    plant_bottom_right = (plant_top_left[0] + 10, plant_top_left[1] + 10)
+    plant_bottom_right = (plant_top_left[0] + 10, plant_top_left[1] + object_image.shape[0])
 
     # Draw a rectangle around the detected plant in the room image (optional, for visualization)
     cv2.rectangle(room_image, plant_top_left, plant_bottom_right, (0, 255, 0), 2)
@@ -59,6 +59,8 @@ def findObjinImage(room_image, object_image):
  
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 URL = "http://192.168.121.87"
+cap = cv2.VideoCapture(URL + ":81/stream")
+object_image = cv2.imread('plant_image.jpg')
 
 tracker = cv2.TrackerKCF_create()
 init_box = None  # Assuming init_box is the bounding box of detected object
