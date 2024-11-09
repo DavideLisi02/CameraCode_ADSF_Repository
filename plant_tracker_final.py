@@ -4,8 +4,6 @@ import numpy as np
 import requests
 import queue
 import threading
-import cvlib as cv
-from cvlib.object_detection import draw_bbox
 
 class VideoCapture:
  
@@ -18,8 +16,8 @@ class VideoCapture:
     
   def _reader(self):
     while True:
-      ret, frame = self.cap.read()
-      if not ret:
+      success, frame = self.cap.read()
+      if not success:
         break
       if not self.q.empty():
         try:
@@ -31,24 +29,14 @@ class VideoCapture:
   def read(self):
     return self.q.get()    
 
-def findObjinImage(room_image, object_image):
-    room_gray = cv2.cvtColor(room_image, cv2.COLOR_BGR2GRAY)
-    plant_gray = cv2.cvtColor(object_image, cv2.COLOR_BGR2GRAY)
-    result = cv2.matchTemplate(room_gray, plant_gray, cv2.TM_CCOEFF_NORMED)
-    threshold = 0.98
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    plant_top_left = max_loc
-    plant_bottom_right = (plant_top_left[0] + 10, plant_top_left[1] + 10)
-    cv2.rectangle(room_image, plant_top_left, plant_bottom_right, (0, 255, 0), 2)
-    return result
 
-def find_reflection(image_0, image_1, video_stored):
+def find_reflection(image_0, image_1):
    
     gray_0 = cv2.cvtColor(image_0, cv2.COLOR_BGR2GRAY)
     gray_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
     
     diff = cv2.absdiff(gray_0, gray_1)
-    
+
     _, thresh = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
 
     # Assuming 'thresh' is your binary image with white (255) and black (0) pixels.
@@ -57,8 +45,6 @@ def find_reflection(image_0, image_1, video_stored):
 
     reflection_x = None
     reflection_y = None
-
-    video_stored.write(thresh)
 
     # Check if there are any white pixels
     if white_pixels.size > 0:
@@ -71,12 +57,14 @@ def find_reflection(image_0, image_1, video_stored):
         found = False
         print("No white pixels found in the image.")
 
-    return ((reflection_x, reflection_y),found)
+    return ((reflection_x, reflection_y),found, diff, thresh)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-URL = "http://192.168.137.194"
+URL = "http://192.168.121.87"
 tracker = cv2.TrackerKCF_create()
 cap = cv2.VideoCapture(URL + ":81/stream")
+
+success, initial_frame = cap.read() #Reading the first frame
 
 # Define video writer parameters
 output_file = 'output_video.avi'
@@ -84,48 +72,56 @@ frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = 20.0  # Set frames per second
 fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Define codec
-out = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
+video_stored = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
 
-frame_0 = None
-
+#Initializing some variables for the while cycle
 first_iteration = True
+
 if __name__ == '__main__':
     requests.get(URL + "/control?var=framesize&val={}".format(8))
     while True:
         if cap.isOpened():
-            ret, frame = cap.read()
             
-            if ret and first_iteration:
+            success, frame = cap.read() #Reading the frame
+            
+            #First iteration
+            if success and first_iteration:
                 init_box = cv2.selectROI(frame, False)
-                frame_0 = frame
-                ret_0 = ret
+                success_0 = success
                 tracker.init(frame, init_box)
                 first_iteration = False
 
-            if not ret:
+            #Check if the frame was successfully captured
+            if not success:
                break
             
-            reflection_xy = find_reflection(frame_0, frame, out)
+            reflection_xy = find_reflection(initial_frame, frame)
             if reflection_xy[1]:
                 cv2.circle(frame, reflection_xy[0], 10, (0, 0, 255), 2)
 
-            ret, bbox = tracker.update(frame)
-            if ret:
+            success, bbox = tracker.update(frame)
+            if success:
                 (x, y, w, h) = [int(v) for v in bbox]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
                 print(f"Object detected at coord = X:{(x+w)/2} | Y:{(y+h)/2}")
             else:
                 cv2.putText(frame, "Tracking failure", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
-            
-            cv2.imshow("Output", frame)
+            #Showed Video Streams
+            cv2.imshow("Gray scale difference", reflection_xy[2])
+            cv2.imshow("Threshold", reflection_xy[3])
+            cv2.imshow("Video Strem", frame)
+
+            #Data stored
+            video_stored.write(frame)
+
             key = cv2.waitKey(3)
             
-            if key == 27:  # Press 'Esc' to exit
+            if key == ord('q'):  # Press 'Esc' to exit
                 break
 
     # Release resources
     cap.release()
-    out.release()
+    video_stored.release()
     cv2.destroyAllWindows()
 
