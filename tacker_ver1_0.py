@@ -178,14 +178,20 @@ def start_video_stream(URL, threshold_value_min, threshold_value_max):
                 else:
                     cv2.putText(frame, "Tracking failure", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
-                cv2.imshow("Gray scale difference", reflection_xy[2])
-                cv2.imshow("Threshold", reflection_xy[3])
-                cv2.imshow("Video Stream", frame)
+                # Resize each image before displaying
+                resized_gray_diff = cv2.resize(reflection_xy[2], (400, 400))  # Resize as needed
+                resized_threshold = cv2.resize(reflection_xy[3], (400, 400))
+                resized_frame = cv2.resize(frame, (400, 400))
 
-                # Move each window to a specific position
-                cv2.moveWindow("Gray scale difference", 0, 0)  # Position at (0,0)
-                cv2.moveWindow("Threshold", 400, 0)            # Position to the right of the first window
-                cv2.moveWindow("Video Stream", 800, 0)    
+                # Show the resized images in separate windows
+                cv2.imshow("Gray scale difference", resized_gray_diff)
+                cv2.imshow("Threshold", resized_threshold)
+                cv2.imshow("Video Stream", resized_frame)
+
+                # Move each window to a specific position on the screen
+                cv2.moveWindow("Gray scale difference", 0, 0)
+                cv2.moveWindow("Threshold", 420, 0)         # Adjust the x-offset based on resized width
+                cv2.moveWindow("Video Stream", 840, 0)  
 
                 video_stored.write(frame)
 

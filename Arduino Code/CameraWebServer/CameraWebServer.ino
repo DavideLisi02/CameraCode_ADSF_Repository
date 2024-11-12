@@ -75,6 +75,8 @@ void setup() {
   config.jpeg_quality = 12;
   config.fb_count = 1;
 
+  
+
   // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
   //                      for larger pre-allocated frame buffer.
   if (config.pixel_format == PIXFORMAT_JPEG) {
