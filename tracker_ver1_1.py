@@ -64,7 +64,7 @@ def align_images(im1, im2):
 
 def find_reflection(image_0, image_1, threshold_value_min, threshold_value_max, min_area, max_area):
     # Allinea le due immagini
-    image_1_aligned = align_images(image_0, image_1)
+    #image_1_aligned = align_images(image_0, image_1)
     
     # Converte le immagini in scala di grigi
     gray_0 = cv2.cvtColor(image_0, cv2.COLOR_BGR2GRAY)
@@ -116,7 +116,7 @@ class SettingsDialog(tk.Tk):
         self.geometry("400x300")
 
         # IP Entry
-        self.ip_var = tk.StringVar(value="http://192.168.121.87")
+        self.ip_var = tk.StringVar(value="http://192.168.4.87")
         tk.Label(self, text="Camera IP:").pack()
         tk.Entry(self, textvariable=self.ip_var, width=30).pack()
 
