@@ -10,17 +10,17 @@ def Main_Loop(URL):
     continue_streaming_global = True #Controls the following cycle while. if someone press r it enables to restart the whole code, take a new image and run again the code
 
     # Set up the serial connection to the ESP32
-    esp32 = serial.Serial(port='COM9', baudrate=115200, timeout=1)
-    time.sleep(2)  # Give the ESP32 time to reset and initialize
+    #esp32 = serial.Serial(port='COM9', baudrate=115200, timeout=1)
+    #time.sleep(2)  # Give the ESP32 time to reset and initialize
 
     while continue_streaming_global:    
         
-        [i_1,i_2] = move_motors(no_ref_motor1,no_ref_motor2,esp32)
+        #[i_1,i_2] = move_motors(no_ref_motor1,no_ref_motor2,esp32)
         
         cap = cv2.VideoCapture(URL) # Starting the video stream capture.
         success, initial_frame = cap.read() # Reading the video stream. Taking a new initial frame as a reference picture for difference calculations
         
-        [i_1,i_2] = move_motors(yes_ref_motor1,yes_ref_motor2,esp32)
+        #[i_1,i_2] = move_motors(yes_ref_motor1,yes_ref_motor2,esp32)
         
         if not cap.isOpened():
             print("Failed to connect to the video stream.")
@@ -69,9 +69,9 @@ def Main_Loop(URL):
                 y_r = reflection_xy[0][1]
                 dx = x_r - x_p
                 dy = y_r - y_p
-                [i_1,i_2] = control_motors(dx,dy,i_1,i_2)
+                #[i_1,i_2] = control_motors(dx,dy,i_1,i_2)
                 # Draw an arrow from (x_r, y_r) to (x_r + i_1, y_r + i_2)
-                cv2.arrowedLine(frame, (x_r, y_r), (x_r + int(i_1), y_r + int(i_2)), (255, 0, 0), 2)
+                #cv2.arrowedLine(frame, (x_r, y_r), (x_r + int(i_1), y_r + int(i_2)), (255, 0, 0), 2)
 
             # Display images with updated threshold in real-time
             resized_gray_diff = cv2.resize(reflection_xy[2], (400, 400))  # Resize as needed

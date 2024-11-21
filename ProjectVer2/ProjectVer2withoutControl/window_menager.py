@@ -22,8 +22,6 @@ class SettingsDialog(tk.Tk):
         tk.Label(self, text="Webcam used:").pack()
         tk.Entry(self, textvariable=self.webcam_var, width=30).pack()
 
-
-
         # MAX FEATURES for align function global variable
         self.max_features = tk.IntVar(value=250)
         tk.Label(self, text="Max Features:").pack()
@@ -35,20 +33,19 @@ class SettingsDialog(tk.Tk):
         tk.Entry(self, textvariable=self.good_match_percent, width=30).pack()
 
         # Start Button
-        tk.Button(self, text="Start Video Stream", command=self.start_video_stream_thread).pack()
+        tk.Button(self, text="Start Video Stream", command=self.start_video_stream).pack()
 
-    def start_video_stream_thread(self):
+    def start_video_stream(self):
         if self.use_webcam_var.get():
             URL = self.webcam_var.get()
         else:
             ip = self.ip_var.get()
-            stream_port = self.stream_var.get()
-            URL = f"{ip}:{stream_port}/stream"
+            URL = f"{ip}/stream"
             
         self.destroy()  # Close settings dialog before starting stream
 
-        # Start video stream in a separate thread to keep GUI responsive
-        threading.Thread(target=Main_Loop, args=(URL,), daemon=True).start()
+        # Start video stream directly in the main thread
+        Main_Loop(URL)
 
 class ReflectionTrackerAdjuster(tk.Tk):
     def __init__(self):

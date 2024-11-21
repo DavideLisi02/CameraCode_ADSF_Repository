@@ -351,9 +351,6 @@ GOOD_MATCH_PERCENT = 0.15
 
 os.system('cls')  # Clear the terminal screen
 
-# Set up the serial connection to the ESP32
-esp32 = serial.Serial(port='COM9', baudrate=115200, timeout=1)
-time.sleep(2)  # Give the ESP32 time to reset and initialize
 
 if __name__ == '__main__':
     app = SettingsDialog()
